@@ -73,9 +73,41 @@ function render(pending: Pending[]) {
 }
 
 function renderCreateForm(): HTMLElement {
+  const wrap = document.createElement("div");
+
+  // ── ONE-CLICK QUICK SETUP ───────────────────────────────
+  // Generates a wallet with a default password. Insecure for production but
+  // lets users get unblocked instantly. They can change the password later.
+  const quick = el(`
+    <div class="card" style="border-color:#7bf0c0;background:rgba(123,240,192,0.06)">
+      <h2 style="margin-top:0;color:#7bf0c0">⚡ Quick start</h2>
+      <p class="muted" style="margin:0 0 10px">One click — creates a wallet with default password <code style="color:#fff">wallet1234</code>. Change it later.</p>
+      <button class="full" id="quick" style="background:#7bf0c0;color:#0a0d1a">🚀 Create wallet now</button>
+      <div id="qerr" class="error" style="display:none"></div>
+    </div>
+  `);
+  quick.querySelector("#quick")!.addEventListener("click", async () => {
+    const btn = quick.querySelector("#quick") as HTMLButtonElement;
+    const err = quick.querySelector("#qerr") as HTMLElement;
+    btn.disabled = true; btn.textContent = "Creating…";
+    try {
+      const r = await send<{ ok: boolean; error?: string }>({ type: "popup:create-wallet", name: "Main wallet", password: "wallet1234", privateKey: null });
+      if (!r.ok) throw new Error(r.error ?? "failed");
+      const u = await send<{ ok: boolean }>({ type: "popup:unlock", password: "wallet1234", walletId: (await send<{ state: State }>({ type: "popup:state" })).state.selectedWalletId });
+      if (!u.ok) throw new Error("unlock failed");
+      lastRenderKey = "";
+      refresh();
+    } catch (e) {
+      err.textContent = (e as Error).message;
+      err.style.display = "block";
+      btn.disabled = false; btn.textContent = "🚀 Create wallet now";
+    }
+  });
+  wrap.appendChild(quick);
+
   const card = el(`
     <div class="card">
-      <h2 style="margin-top:0">Set up wallet</h2>
+      <h2 style="margin-top:0">Or set up manually</h2>
       <div class="tabs">
         <button data-mode="new" class="active">+ New</button>
         <button data-mode="import">Import key</button>
@@ -83,6 +115,7 @@ function renderCreateForm(): HTMLElement {
       <div id="form"></div>
     </div>
   `);
+  wrap.appendChild(card);
   let mode: "new" | "import" = "new";
   const renderForm = () => {
     const f = card.querySelector("#form")!;
@@ -118,7 +151,7 @@ function renderCreateForm(): HTMLElement {
     });
   });
   renderForm();
-  return card;
+  return wrap;
 }
 
 function renderUnlock(): HTMLElement {
