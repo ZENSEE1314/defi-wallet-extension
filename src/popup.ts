@@ -20,11 +20,23 @@ async function send<T = unknown>(msg: Record<string, unknown>): Promise<T> {
   return new Promise((resolve) => chrome.runtime.sendMessage(msg, resolve));
 }
 
+let lastRenderKey = "";
+
 async function refresh() {
   const r = await send<{ state: State; unlockedWalletId: string | null }>({ type: "popup:state" });
   state = r.state;
   unlockedWalletId = r.unlockedWalletId;
   const pending = await send<Pending[]>({ type: "popup:list-pending" });
+
+  // Don't re-render if the structural state hasn't changed AND the user is
+  // currently typing into an input — re-rendering wipes what they typed.
+  const key = `${state.wallets.length}|${state.selectedWalletId}|${state.selectedChainId}|${unlockedWalletId}|${pending.length}|${pending[0]?.id ?? ""}`;
+  const focusedTag = (document.activeElement?.tagName ?? "").toLowerCase();
+  const userIsTyping = focusedTag === "input" || focusedTag === "textarea";
+  if (key === lastRenderKey && userIsTyping) return;
+  if (key === lastRenderKey) return; // also skip if nothing changed at all
+  lastRenderKey = key;
+
   render(pending);
 }
 
