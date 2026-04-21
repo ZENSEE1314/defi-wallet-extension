@@ -47,15 +47,16 @@ button.danger { background: #ff4d6d; }
 button.full { width: 100%; }
 input, select {
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 11px;
   border-radius: 6px;
-  background: #0a0d1a;
+  background: #1b2030;
   color: #e6eaf2;
-  border: 1px solid #232a3d;
-  font-size: 12px;
+  border: 1px solid #3a4360;
+  font-size: 13px;
   font-family: inherit;
+  margin-top: 2px;
 }
-input:focus, select:focus { outline: none; border-color: #5b8cff; }
+input:focus, select:focus { outline: none; border-color: #5b8cff; box-shadow: 0 0 0 2px rgba(91,140,255,0.2); }
 label { display: block; font-size: 11px; color: #8a93a8; margin: 8px 0 4px; }
 .pending {
   border-color: #ffb454;

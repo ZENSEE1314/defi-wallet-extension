@@ -75,11 +75,13 @@ function renderCreateForm(): HTMLElement {
   const renderForm = () => {
     const f = card.querySelector("#form")!;
     f.innerHTML = "";
-    f.appendChild(el(`<label>Wallet name</label><input id="name" value="Main wallet" />`));
+    // IMPORTANT: wrap each label+input in a div so the el() helper (which only
+    // returns firstElementChild) keeps both rendered.
+    f.appendChild(el(`<div><label>Wallet name</label><input id="name" value="Main wallet" /></div>`));
     if (mode === "import") {
-      f.appendChild(el(`<label>Private key (0x…)</label><input id="key" placeholder="0x…" />`));
+      f.appendChild(el(`<div><label>Private key (0x…)</label><input id="key" placeholder="0x…" /></div>`));
     }
-    f.appendChild(el(`<label>Password (8+ chars)</label><input id="pwd" type="password" />`));
+    f.appendChild(el(`<div><label>Password (8+ chars)</label><input id="pwd" type="password" /></div>`));
     f.appendChild(el(`<button class="full" id="go" style="margin-top:10px">${mode === "new" ? "Create" : "Import"}</button>`));
     f.appendChild(el(`<div id="err" class="error" style="display:none"></div>`));
     f.querySelector("#go")!.addEventListener("click", async () => {
@@ -112,10 +114,9 @@ function renderUnlock(): HTMLElement {
   const card = el(`
     <div class="card">
       <h2 style="margin-top:0">Unlock</h2>
-      <div class="muted">${w.name}</div>
+      <div class="muted">${escapeHtml(w.name)}</div>
       <div class="address mono">${w.address}</div>
-      <label>Password</label>
-      <input id="pwd" type="password" autofocus />
+      <div><label>Password</label><input id="pwd" type="password" autofocus /></div>
       <div id="err" class="error" style="display:none"></div>
       <button class="full" id="go" style="margin-top:10px">Unlock</button>
     </div>
@@ -228,7 +229,7 @@ function renderPending(p: Pending, isLocked: boolean): HTMLElement {
       <div class="row"><span class="muted">Method</span><span class="mono">${escapeHtml(p.method)}</span></div>
       <div class="row"><span class="muted">Wallet</span><span class="address mono">${w?.address?.slice(0, 18)}…</span></div>
       <pre>${escapeHtml(summary)}</pre>
-      ${isLocked ? `<label>Password</label><input id="pwd" type="password" autofocus />` : ""}
+      ${isLocked ? `<div><label>Password</label><input id="pwd" type="password" autofocus /></div>` : ""}
       <div id="err" class="error" style="display:none"></div>
       <div class="btn-row">
         <button class="secondary" id="rej">Reject</button>
